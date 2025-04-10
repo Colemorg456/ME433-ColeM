@@ -46,7 +46,8 @@ pico_enable_stdio_usb(my3project 1)
 
 # Add the standard library to the build
 target_link_libraries(my3project
-        pico_stdlib)
+        pico_stdlib
+        hardware_adc)
 
 # Add the standard include files to the build
 target_include_directories(my3project PRIVATE
