@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
-#define PIN_NUM 15
+#define PIN_NUM 15 //Using GPIO 15 for the LED
 
 int main() {
     stdio_init_all();
@@ -29,7 +29,7 @@ int main() {
 
     while (1) {
 
-        while(gpio_get(14) == 1){ //While the button IO pin is high, do nothing
+        while(gpio_get(14) == 1){ //While the button IO pin is high, do nothing, using GPIO 14
             ;
         }
         gpio_put(PIN_NUM,0); //When the button is pressed, turn the LED off
