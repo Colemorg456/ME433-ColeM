@@ -29,19 +29,33 @@ int main() {
 
     while (1) {
 
-        while(gpio_get(14) == 1){
+        while(gpio_get(14) == 1){ //While the button IO pin is high, do nothing
             ;
         }
-            gpio_put(PIN_NUM,0);
+        gpio_put(PIN_NUM,0); //When the button is pressed, turn the LED off
 
-            char message[100];
-            scanf("%s", message);
-            printf("message: %s\r\n",message);
-            sleep_ms(50);
 
-            for(int i=0; message;i++){
-                uint16_t result = adc_read();
-                printf("The ADC count is: %d\r\n",result);
-            }
+        int sample_num=0;
+        printf("Enter the number of samples 1-100: ");
+        scanf("%d",&sample_num); //Collect the number of ADC count samples
+
+        if(sample_num<1){ //Make sure the ADC sample counts are between 1-100
+            sample_num = 1;
         }
+        if(sample_num > 100){
+            sample_num = 100;
+        }
+        sleep_ms(50);
+
+        for(int i=0; i < sample_num;i++){ //Cycle through each ADC count 
+            uint16_t result = adc_read();
+            float voltage = ((result/(4096.0-1.0))*3.30); //Convert ADC to voltage
+            printf("The ADC count is: %.4f\r\n",voltage); //print
+            sleep_ms(10); //Wait 100hz or 10 milliseconds
+        }
+        gpio_put(PIN_NUM,1); //Turn LED back on to indicate the program has finished
+        sample_num = 0;
+        printf("Press the button again to restart");
     }
+return 0;
+}
