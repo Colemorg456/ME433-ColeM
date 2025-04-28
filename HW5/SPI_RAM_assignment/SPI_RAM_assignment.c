@@ -13,7 +13,7 @@
 static float t_sin = 0;
 static float t_tri = 0;
 
-// Inline CS control
+
 static inline void cs_select(uint cs_pin) {
     asm volatile("nop \n nop \n nop");
     gpio_put(cs_pin, 0);
