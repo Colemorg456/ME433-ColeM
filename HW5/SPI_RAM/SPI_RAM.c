@@ -29,8 +29,64 @@ int main()
     gpio_put(PIN_CS, 1);
     // For more examples of SPI use see https://github.com/raspberrypi/pico-examples/tree/master/spi
 
-    while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+    //while (true) {
+    //    printf("Hello, world!\n");
+    //    sleep_ms(1000);
+    //}
+
+    while (!stdio_usb_connected()) {
+        sleep_ms(100);
     }
+    printf("Start!\n");
+
+    volatile float f1, f2;
+    printf("Enter two floats to use:");
+    scanf("%f %f", &f1, &f2);
+    volatile float f_add, f_sub, f_mult, f_div;
+
+    absolute_time_t t1 = get_absolute_time(); //get the time and then convert to microseconds
+    uint64_t t11 = to_us_since_boot(t1);
+    for (int i =0; i<1000; i++){ //Make loop to do operation 1000 times 
+        f_add = f1+f2;
+    }
+    absolute_time_t t2 = get_absolute_time();
+    uint64_t t22 = to_us_since_boot(t2); // get time again
+    //printf("\n 1 %llu %llu",t11,t22);
+    uint64_t abs_time = (t22-t11);
+    uint64_t clk_cycles = (abs_time*150)/1000; //Multiply by 150 clock cycles per microsecond since we are in microseconds
+    printf("\n Addition took %llu clock cycles \n",clk_cycles); // print
+
+    //Repeat for each math operation
+    t1 = get_absolute_time();
+    t11 = to_us_since_boot(t1);
+    for (int i = 0; i<1000; i++) {
+       f_sub = f1 - f2;
+    }
+    t2 = get_absolute_time();
+    t22 = to_us_since_boot(t2);
+    abs_time = (t22 - t11);
+    clk_cycles = (abs_time * 150)/1000;
+    printf("\n Subtraction took %llu clock cycles\n",clk_cycles);
+ 
+    t1 = get_absolute_time();
+    t11 = to_us_since_boot(t1);
+    for (int i = 0; i < 1000; i++) {
+        f_mult = f1 * f2;
+    }
+    t2 = get_absolute_time();
+    t22 = to_us_since_boot(t2);
+    abs_time = (t22 - t11);
+    clk_cycles = (abs_time*150)/1000;
+    printf("\n Multiplication took %llu clock cycles\n",clk_cycles);
+ 
+    t1 = get_absolute_time();
+    t11 = to_us_since_boot(t1);
+    for (int i = 0; i < 1000; i++) {
+        f_div = f1 / f2;
+    }
+    t2 = get_absolute_time();
+    t22 = to_us_since_boot(t2);
+    abs_time = (t22-t11);
+    clk_cycles =(abs_time*150)/ 1000;
+    printf("\n Division took %llu clock cycles\n",clk_cycles);
 }
