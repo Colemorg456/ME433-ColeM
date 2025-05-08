@@ -46,7 +46,7 @@ pico_enable_stdio_usb(OLED_I2C 0)
 
 # Add the standard library to the build
 target_link_libraries(OLED_I2C
-        pico_stdlib)
+        pico_stdlib hardware_adc)
 
 # Add the standard include files to the build
 target_include_directories(OLED_I2C PRIVATE
