@@ -23,15 +23,14 @@ int main(){
     pwm_set_gpio_level(servoPIN, wrap / 2); // set the duty cycle to 50%
 
     while (true) {
-        for (float angle=0; angle<=180;angle+=1.8){
+        for (float angle=0; angle<=180;angle+=0.72){ //5sec/.02 ms = 250 steps, 250/180 = .72 deg
             set_angle(servoPIN,wrap,angle);
             sleep_ms(20);
         }
-        for (float angle=180; angle>=0;angle-=1.8){
+        for (float angle=180; angle>=0;angle-=0.72){
             set_angle(servoPIN,wrap,angle);
             sleep_ms(20);
         }
-        sleep_ms(1000);
     }
 }
 
