@@ -36,7 +36,7 @@ B = 0.005
 for i in range(len(data1)):
     if i==0: #first loop through
         avg_data.append(data1[i])
-    else:
+    else: #Apply the weights to every data point unlike the MAF
         IIR = A*avg_data[i - 1] + B*data1[i]
         avg_data.append(IIR)
 

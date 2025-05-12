@@ -20,6 +20,7 @@ def fft_plotting(csv_file,title):
     t =np.array(t)
     y =np.array(data1)
     Fs = (len(t))/(t[-1]) # sample rate
+    print(Fs)
     n = len(y) # length of the signal
     k = np.arange(n)
     T = n/Fs
