@@ -57,12 +57,12 @@ int main()
 
         if (duty_cycle > 0){
             gpio_put(B_PHASE,1);
-            gpio_put(A_PHASE,1);
+            gpio_put(A_PHASE,0);
             PWM_speed = (uint16_t)(wrap*(duty_cycle/100.0));
         }
         if(duty_cycle < 0){
             gpio_put(B_PHASE,0);
-            gpio_put(A_PHASE,0);
+            gpio_put(A_PHASE,1);
             PWM_speed = (uint16_t)(wrap*(-duty_cycle/100.0));
         }
         if(duty_cycle == 0){
