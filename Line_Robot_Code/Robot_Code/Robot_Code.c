@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 #include "ssd1306.h"
 #include "font.h"
 #include "hardware/pwm.h"
+#include "cam.h"
+
 
 //Motor Defines
 #define B_PWM 21
@@ -16,6 +19,11 @@
 #define I2C_SDA2 16
 #define I2C_SCL2 17
 #define LED_PIN 25
+
+//Motor Controller defines
+#define MAX_DUTY 100
+#define DEAD_BAND 5    
+#define STEERING_GAIN 1.0
 
 void drawMessage(int x, int y, char * m);
 void drawLetter(int x, int y, char c);
@@ -62,50 +70,57 @@ int main()
     pwm_set_clkdiv(slice_A, div); // divider
     pwm_set_wrap(slice_A, wrap);
     pwm_set_enabled(slice_A, true); // turn on the PWM
-    int duty_cycle = 0;
 
+    //Camera Startup
+    init_camera_pins();
 
     while (true) {
         //Heartbeat LED
         LED_state = !LED_state;
         gpio_put(LED_PIN, LED_state);
 
+        //Camera Code
+        setSaveImage(1);
+        while(getSaveImage()==1){}
+        convertImage();
+        int com = findLine(IMAGESIZEY/2); // calculate the position of the center of the ine
+        int line_position = com-(IMAGESIZEX/2);  // convert it to -40 to +40
+        //Saving the final result from the camera into line_position
+
+        //Line following controller
+        static int left_duty,right_duty;
+        if (abs(line_position) < DEAD_BAND){ //Robot is directly on the line
+            //Go straight, max PWM
+            left_duty = MAX_DUTY;
+            right_duty = MAX_DUTY;
+        }else if (line_position > 0){ //The line is going to the right
+            //Slow the right wheel while keeping the left wheel going
+            left_duty = MAX_DUTY;
+            right_duty = MAX_DUTY - (int)(STEERING_GAIN*abs(line_position));
+        }else {
+            //Line is going to left, slow left wheel and speed up right wheel
+            left_duty = MAX_DUTY - (int)(STEERING_GAIN*abs(line_position));
+            right_duty = MAX_DUTY;
+        }
+
+        //Keep duty cycles as real numbers
+        if(left_duty < 0){
+            left_duty = 0;
+        }
+        if(right_duty < 0){
+            right_duty = 0;
+        }
+
         //Motor Control
-        uint16_t PWM_speed;
-        //HERE RECEIVE INPUT from motor controller for PWM
-        int c;
-        if (c == '+'){
-            if(duty_cycle < 100){
-                duty_cycle++;
-            }
-        }
-        if (c=='-'){
-            if(duty_cycle > -100){
-                duty_cycle--;
-            }
-        }
-
-        if (duty_cycle > 0){
-            gpio_put(B_PHASE,1);
-            gpio_put(A_PHASE,0);
-            PWM_speed = (uint16_t)(wrap*(duty_cycle/100.0));
-        }
-        if(duty_cycle < 0){
-            gpio_put(B_PHASE,0);
-            gpio_put(A_PHASE,1);
-            PWM_speed = (uint16_t)(wrap*(-duty_cycle/100.0));
-        }
-        if(duty_cycle == 0){
-            PWM_speed = 0;
-        }
-
-        pwm_set_gpio_level(A_PWM,PWM_speed);
-        pwm_set_gpio_level(B_PWM,PWM_speed);
+        uint16_t PWM_speed_right = (uint16_t)(wrap*(right_duty/100.0));
+        uint16_t PWM_speed_left = (uint16_t)(wrap*(left_duty/100.0));
+        gpio_put(B_PHASE,1);
+        gpio_put(A_PHASE,0);
+        pwm_set_gpio_level(A_PWM,PWM_speed_right);
+        pwm_set_gpio_level(B_PWM,PWM_speed_left);
 
         //OLED Display updating Duty cycles
         ssd1306_clear();
-        int left_duty=75;
-        int right_duty= 60;
         char left_msg[50];
         char right_msg[50];
         sprintf(left_msg,"Left duty cycle: %d",left_duty);
@@ -113,6 +128,6 @@ int main()
         drawMessage(0,5,left_msg);
         drawMessage(0,15,right_msg);
         ssd1306_update();
-        sleep_ms(1000);
+        sleep_ms(1);
     }
 }

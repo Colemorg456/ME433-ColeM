@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Robot_Code Robot_Code.c ssd1306.c)
+add_executable(Robot_Code Robot_Code.c ssd1306.c cam.c)
 
 pico_set_program_name(Robot_Code "Robot_Code")
 pico_set_program_version(Robot_Code "0.1")
