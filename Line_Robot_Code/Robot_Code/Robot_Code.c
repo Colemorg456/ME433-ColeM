@@ -22,8 +22,8 @@
 
 //Motor Controller defines
 #define MAX_DUTY 100
-#define DEAD_BAND 5    
-#define STEERING_GAIN 1.0
+#define DEADBAND 5    
+#define GAIN 1.0
 
 void drawMessage(int x, int y, char * m);
 void drawLetter(int x, int y, char c);
@@ -89,17 +89,17 @@ int main()
 
         //Line following controller
         static int left_duty,right_duty;
-        if (abs(line_position) < DEAD_BAND){ //Robot is directly on the line
+        if (abs(line_position) < DEADBAND){ //Robot is directly on the line
             //Go straight, max PWM
             left_duty = MAX_DUTY;
             right_duty = MAX_DUTY;
         }else if (line_position > 0){ //The line is going to the right
             //Slow the right wheel while keeping the left wheel going
             left_duty = MAX_DUTY;
-            right_duty = MAX_DUTY - (int)(STEERING_GAIN*abs(line_position));
+            right_duty = MAX_DUTY - (int)(GAIN*abs(line_position));
         }else {
             //Line is going to left, slow left wheel and speed up right wheel
-            left_duty = MAX_DUTY - (int)(STEERING_GAIN*abs(line_position));
+            left_duty = MAX_DUTY - (int)(GAIN*abs(line_position));
             right_duty = MAX_DUTY;
         }
 
