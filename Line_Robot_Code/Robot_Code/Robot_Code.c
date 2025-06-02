@@ -23,11 +23,11 @@
 //Motor Controller defines
 #define MAX_DUTY 50
 #define MIN_DUTY 10 //To keep motor from locking up
-#define DEADBAND 3
+#define DEADBAND 4
 #define LEFT_GAIN 1.0
 #define RIGHT_GAIN 0.98
-#define Kp 2.0
-#define Kd 0.8
+#define Kp 1.1
+#define Kd 0.6
 
 void drawMessage(int x, int y, char * m);
 void drawLetter(int x, int y, char c);
@@ -147,6 +147,6 @@ int main()
         drawMessage(0,5,left_msg);
         drawMessage(0,15,right_msg);
         ssd1306_update();
-        sleep_ms(0.2);
+        sleep_ms(1);
     }
 }
