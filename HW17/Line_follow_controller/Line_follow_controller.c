@@ -81,15 +81,16 @@ int main()
         gpio_put(LED_PIN, LED_state);
 
         //Camera Code
-        setSaveImage(1);
-        while(getSaveImage()==1){}
-        convertImage();
-        int com = findLine(IMAGESIZEY/2); // calculate the position of the center of the ine
-        int line_position = com-(IMAGESIZEX/2);  // convert it to -40 to +40
-        //Saving the final result from the camera into line_position
+        // setSaveImage(1);
+        // while(getSaveImage()==1){}
+        // convertImage();
+        // int com = findLine(IMAGESIZEY/2); // calculate the position of the center of the ine
+        // int line_position = com-(IMAGESIZEX/2);  // convert it to -40 to +40
+        // //Saving the final result from the camera into line_position
 
+        int line_position = 0;
         //Line following controller
-        static int left_duty,right_duty;
+        int left_duty,right_duty;
         if (abs(line_position) < DEADBAND){ //Robot is directly on the line
             //Go straight, max PWM
             left_duty = MAX_DUTY;
@@ -97,35 +98,38 @@ int main()
         }else if (line_position > 0){ //The line is going to the right
             //Slow the right wheel while keeping the left wheel going
             left_duty = MAX_DUTY;
-            right_duty = MAX_DUTY-(int)(LEFT_GAIN*abs(line_position));
+            right_duty = MAX_DUTY-(abs(line_position));
         }else {
             //Line is going to left, slow left wheel and speed up right wheel
-            left_duty = MAX_DUTY-(int)(RIGHT_GAIN*abs(line_position));
+            left_duty = MAX_DUTY-(abs(line_position));
             right_duty = MAX_DUTY;
         }
 
+        int fix_right_duty = (int)(RIGHT_GAIN*right_duty);
+        int fix_left_duty = (int)(LEFT_GAIN*left_duty);
+
         //Keep duty cycles as real numbers
-        if(left_duty < 0){
-            left_duty = 0;
+        if(fix_left_duty < 0){
+            fix_left_duty = 0;
         }
-        if(right_duty < 0){
-            right_duty = 0;
+        if(fix_right_duty < 0){
+            fix_right_duty = 0;
         }
 
         //Motor Control
-        // uint16_t PWM_speed_right = (uint16_t)(wrap*(right_duty/100.0));
-        // uint16_t PWM_speed_left = (uint16_t)(wrap*(left_duty/100.0));
-        // gpio_put(B_PHASE,1);
-        // gpio_put(A_PHASE,0);
-        // pwm_set_gpio_level(A_PWM,PWM_speed_right);
-        // pwm_set_gpio_level(B_PWM,PWM_speed_left);
+        uint16_t PWM_speed_right = (uint16_t)(wrap*(fix_right_duty/100.0));
+        uint16_t PWM_speed_left = (uint16_t)(wrap*(fix_left_duty/100.0));
+        gpio_put(B_PHASE,1);
+        gpio_put(A_PHASE,0);
+        pwm_set_gpio_level(B_PWM,PWM_speed_right);
+        pwm_set_gpio_level(A_PWM,PWM_speed_left);
 
         //OLED Display updating Duty cycles
         ssd1306_clear();
         char left_msg[50];
         char right_msg[50];
-        sprintf(left_msg,"Left duty cycle: %d",left_duty);
-        sprintf(right_msg,"Right duty cycle: %d",right_duty);
+        sprintf(left_msg,"Left duty cycle: %d",fix_left_duty);
+        sprintf(right_msg,"Right duty cycle: %d",fix_right_duty);
         drawMessage(0,5,left_msg);
         drawMessage(0,15,right_msg);
         ssd1306_update();

@@ -22,9 +22,12 @@
 
 //Motor Controller defines
 #define MAX_DUTY 50
-#define DEADBAND 6  
+#define MIN_DUTY 10 //To keep motor from locking up
+#define DEADBAND 3
 #define LEFT_GAIN 1.0
-#define RIGHT_GAIN 1.0
+#define RIGHT_GAIN 0.98
+#define Kp 2.0
+#define Kd 0.8
 
 void drawMessage(int x, int y, char * m);
 void drawLetter(int x, int y, char c);
@@ -88,8 +91,21 @@ int main()
         int line_position = com-(IMAGESIZEX/2);  // convert it to -40 to +40
         //Saving the final result from the camera into line_position
 
-        //Line following controller
-        static int left_duty,right_duty;
+        int left_duty,right_duty;
+        int left_correction, right_correction;
+        float correction;
+        static int pos_prev;
+        int edot;
+
+        //Derivative Controller
+        edot = line_position - pos_prev;
+        pos_prev = line_position;
+        correction = ((Kp*abs(line_position))+(Kd*edot));
+
+        if(correction > MAX_DUTY){
+                correction = MAX_DUTY;
+            }
+
         if (abs(line_position) < DEADBAND){ //Robot is directly on the line
             //Go straight, max PWM
             left_duty = MAX_DUTY;
@@ -97,28 +113,30 @@ int main()
         }else if (line_position > 0){ //The line is going to the right
             //Slow the right wheel while keeping the left wheel going
             left_duty = MAX_DUTY;
-            right_duty = MAX_DUTY-(int)(LEFT_GAIN*abs(line_position));
+            right_duty = MAX_DUTY-correction;
         }else {
             //Line is going to left, slow left wheel and speed up right wheel
-            left_duty = MAX_DUTY-(int)(RIGHT_GAIN*abs(line_position));
+            left_duty = MAX_DUTY-correction;
             right_duty = MAX_DUTY;
         }
 
-        //Keep duty cycles as real numbers
-        if(left_duty < 0){
-            left_duty = 0;
+        int fix_right_duty = (int)(RIGHT_GAIN*right_duty);
+        int fix_left_duty = (int)(LEFT_GAIN*left_duty);
+        if(fix_right_duty < MIN_DUTY){
+            fix_right_duty = MIN_DUTY;
         }
-        if(right_duty < 0){
-            right_duty = 0;
+        if(fix_left_duty < MIN_DUTY){
+            fix_left_duty = MIN_DUTY;
         }
 
+
         //Motor Control
-        uint16_t PWM_speed_right = (uint16_t)(wrap*(right_duty/100.0));
-        uint16_t PWM_speed_left = (uint16_t)(wrap*(left_duty/100.0));
+        uint16_t PWM_speed_right = (uint16_t)(wrap*(fix_right_duty/100.0));
+        uint16_t PWM_speed_left = (uint16_t)(wrap*(fix_left_duty/100.0));
         gpio_put(B_PHASE,1);
         gpio_put(A_PHASE,0);
-        pwm_set_gpio_level(A_PWM,PWM_speed_right);
-        pwm_set_gpio_level(B_PWM,PWM_speed_left);
+        pwm_set_gpio_level(B_PWM,PWM_speed_right);
+        pwm_set_gpio_level(A_PWM,PWM_speed_left);
 
         //OLED Display updating Duty cycles
         ssd1306_clear();
@@ -129,6 +147,6 @@ int main()
         drawMessage(0,5,left_msg);
         drawMessage(0,15,right_msg);
         ssd1306_update();
-        sleep_ms(1);
+        sleep_ms(0.2);
     }
 }
