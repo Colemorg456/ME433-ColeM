@@ -21,9 +21,10 @@
 #define LED_PIN 25
 
 //Motor Controller defines
-#define MAX_DUTY 100
-#define DEADBAND 5    
-#define GAIN 1.0
+#define MAX_DUTY 50
+#define DEADBAND 6  
+#define LEFT_GAIN 1.0
+#define RIGHT_GAIN 1.0
 
 void drawMessage(int x, int y, char * m);
 void drawLetter(int x, int y, char c);
@@ -55,7 +56,7 @@ int main()
     gpio_put(B_PHASE,1);
     gpio_init(A_PHASE);
     gpio_set_dir(A_PHASE, GPIO_OUT);
-    gpio_put(A_PHASE,1);
+    gpio_put(A_PHASE,0);
 
     //PWM Initialization
     float div = 1; // must be between 1-255
@@ -96,10 +97,10 @@ int main()
         }else if (line_position > 0){ //The line is going to the right
             //Slow the right wheel while keeping the left wheel going
             left_duty = MAX_DUTY;
-            right_duty = MAX_DUTY - (int)(GAIN*abs(line_position));
+            right_duty = MAX_DUTY-(int)(LEFT_GAIN*abs(line_position));
         }else {
             //Line is going to left, slow left wheel and speed up right wheel
-            left_duty = MAX_DUTY - (int)(GAIN*abs(line_position));
+            left_duty = MAX_DUTY-(int)(RIGHT_GAIN*abs(line_position));
             right_duty = MAX_DUTY;
         }
 

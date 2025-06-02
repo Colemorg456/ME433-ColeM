@@ -5,6 +5,7 @@
 #include "ssd1306.h"
 #include "font.h"
 #include "hardware/pwm.h"
+#include "cam.h"
 
 
 //Motor Defines
@@ -20,11 +21,11 @@
 #define LED_PIN 25
 
 //Motor Controller defines
-#define MAX_DUTY 100  //Max duty cycle the robot will use when going around the track
-#define DEAD_BAND 5      //Dead band error space for line tracking
-#define STEERING_GAIN 1.0 //P proportional gain for controller
+#define MAX_DUTY 50
+#define DEADBAND 6  
+#define LEFT_GAIN 1.0
+#define RIGHT_GAIN 1.0
 
-//updating the OLED screen instead of using 2 LEDs
 void drawMessage(int x, int y, char * m);
 void drawLetter(int x, int y, char c);
 
@@ -55,7 +56,7 @@ int main()
     gpio_put(B_PHASE,1);
     gpio_init(A_PHASE);
     gpio_set_dir(A_PHASE, GPIO_OUT);
-    gpio_put(A_PHASE,1);
+    gpio_put(A_PHASE,0);
 
     //PWM Initialization
     float div = 1; // must be between 1-255
@@ -71,31 +72,39 @@ int main()
     pwm_set_wrap(slice_A, wrap);
     pwm_set_enabled(slice_A, true); // turn on the PWM
 
+    //Camera Startup
+    init_camera_pins();
+
     while (true) {
         //Heartbeat LED
         LED_state = !LED_state;
         gpio_put(LED_PIN, LED_state);
 
-        //REPLACE LATER with input from teh camera so I can update in real time
-        int line_position = 15; 
+        //Camera Code
+        setSaveImage(1);
+        while(getSaveImage()==1){}
+        convertImage();
+        int com = findLine(IMAGESIZEY/2); // calculate the position of the center of the ine
+        int line_position = com-(IMAGESIZEX/2);  // convert it to -40 to +40
+        //Saving the final result from the camera into line_position
 
         //Line following controller
         static int left_duty,right_duty;
-        if (abs(line_position) < DEAD_BAND){ //Robot is directly on the line
+        if (abs(line_position) < DEADBAND){ //Robot is directly on the line
             //Go straight, max PWM
             left_duty = MAX_DUTY;
             right_duty = MAX_DUTY;
         }else if (line_position > 0){ //The line is going to the right
             //Slow the right wheel while keeping the left wheel going
             left_duty = MAX_DUTY;
-            right_duty = MAX_DUTY - (int)(STEERING_GAIN * abs(line_position));
+            right_duty = MAX_DUTY-(int)(LEFT_GAIN*abs(line_position));
         }else {
             //Line is going to left, slow left wheel and speed up right wheel
-            left_duty = MAX_DUTY - (int)(STEERING_GAIN*abs(line_position));
+            left_duty = MAX_DUTY-(int)(RIGHT_GAIN*abs(line_position));
             right_duty = MAX_DUTY;
         }
 
-        // Clamp duty cycles to valid range
+        //Keep duty cycles as real numbers
         if(left_duty < 0){
             left_duty = 0;
         }
@@ -104,12 +113,12 @@ int main()
         }
 
         //Motor Control
-        uint16_t PWM_speed_right = (uint16_t)(wrap*(right_duty/100.0));
-        uint16_t PWM_speed_left = (uint16_t)(wrap*(left_duty/100.0));
-        gpio_put(B_PHASE,1);
-        gpio_put(A_PHASE,0);
-        pwm_set_gpio_level(A_PWM,PWM_speed_right);
-        pwm_set_gpio_level(B_PWM,PWM_speed_left);
+        // uint16_t PWM_speed_right = (uint16_t)(wrap*(right_duty/100.0));
+        // uint16_t PWM_speed_left = (uint16_t)(wrap*(left_duty/100.0));
+        // gpio_put(B_PHASE,1);
+        // gpio_put(A_PHASE,0);
+        // pwm_set_gpio_level(A_PWM,PWM_speed_right);
+        // pwm_set_gpio_level(B_PWM,PWM_speed_left);
 
         //OLED Display updating Duty cycles
         ssd1306_clear();
@@ -120,6 +129,6 @@ int main()
         drawMessage(0,5,left_msg);
         drawMessage(0,15,right_msg);
         ssd1306_update();
-        sleep_ms(10);
+        sleep_ms(1);
     }
 }

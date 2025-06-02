@@ -35,18 +35,20 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Line_follow_controller Line_follow_controller.c )
+add_executable(Line_follow_controller Line_follow_controller.c cam.c ssd1306.c )
 
 pico_set_program_name(Line_follow_controller "Line_follow_controller")
 pico_set_program_version(Line_follow_controller "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(Line_follow_controller 0)
-pico_enable_stdio_usb(Line_follow_controller 0)
+pico_enable_stdio_usb(Line_follow_controller 1)
 
 # Add the standard library to the build
 target_link_libraries(Line_follow_controller
-        pico_stdlib)
+        pico_stdlib
+        hardware_i2c
+        hardware_pwm)
 
 # Add the standard include files to the build
 target_include_directories(Line_follow_controller PRIVATE
