@@ -21,13 +21,13 @@
 #define LED_PIN 25
 
 //Motor Controller defines
-#define MAX_DUTY 35
+#define MAX_DUTY 40
 #define MIN_DUTY 10 //To keep motor from locking up
 #define DEADBAND 4
 #define LEFT_GAIN 0.98
 #define RIGHT_GAIN 0.996
-#define Kp 1.1
-#define Kd 0.4
+#define Kp 1
+#define Kd 1
 
 void drawMessage(int x, int y, char * m);
 void drawLetter(int x, int y, char c);
@@ -84,13 +84,14 @@ int main()
         gpio_put(LED_PIN, LED_state);
 
         //Camera Code
-        setSaveImage(1);
-        while(getSaveImage()==1){}
-        convertImage();
-        int com = findLine(IMAGESIZEY/2); // calculate the position of the center of the ine
-        int line_position = com-(IMAGESIZEX/2);  // convert it to -40 to +40
-        //Saving the final result from the camera into line_position
+        // setSaveImage(1);
+        // while(getSaveImage()==1){}
+        // convertImage();
+        // int com = findLine(IMAGESIZEY/2); // calculate the position of the center of the ine
+        // int line_position = com-(IMAGESIZEX/2);  // convert it to -40 to +40
+        // //Saving the final result from the camera into line_position
 
+        int line_position = 0;
         int left_duty,right_duty;
         int left_correction, right_correction;
         float correction;
@@ -101,7 +102,6 @@ int main()
         edot = line_position - pos_prev;
         pos_prev = line_position;
         correction = ((Kp*abs(line_position))+(Kd*edot));
-        //correction = (Kp*abs(line_position));
 
         if(correction > MAX_DUTY){
                 correction = MAX_DUTY;
