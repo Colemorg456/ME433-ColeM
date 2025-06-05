@@ -21,13 +21,14 @@
 #define LED_PIN 25
 
 //Motor Controller defines
-#define MAX_DUTY 35
+#define MAX_DUTY 25
 #define MIN_DUTY 10 //To keep motor from locking up
 #define DEADBAND 4
 #define LEFT_GAIN 0.98
 #define RIGHT_GAIN 0.996
-#define Kp 1.1
+#define Kp 1.2
 #define Kd 0.4
+//0.4 1.1 25
 
 void drawMessage(int x, int y, char * m);
 void drawLetter(int x, int y, char c);
@@ -109,8 +110,10 @@ int main()
 
         if (abs(line_position) < DEADBAND){ //Robot is directly on the line
             //Go straight, max PWM
-            left_duty = MAX_DUTY;
-            right_duty = MAX_DUTY;
+            // left_duty = MAX_DUTY;
+            // right_duty = MAX_DUTY;
+            left_duty = 30;
+            right_duty = 30;
         }else if (line_position > 0){ //The line is going to the right
             //Slow the right wheel while keeping the left wheel going
             left_duty = MAX_DUTY;
@@ -143,11 +146,11 @@ int main()
         ssd1306_clear();
         char left_msg[50];
         char right_msg[50];
-        sprintf(left_msg,"Left duty cycle: %d",left_duty);
-        sprintf(right_msg,"Right duty cycle: %d",right_duty);
+        sprintf(left_msg,"Left duty cycle: %d",fix_left_duty);
+        sprintf(right_msg,"Right duty cycle: %d",fix_right_duty);
         drawMessage(0,5,left_msg);
         drawMessage(0,15,right_msg);
         ssd1306_update();
-        sleep_ms(1);
+        sleep_ms(150);
     }
 }
