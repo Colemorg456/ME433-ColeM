@@ -1,0 +1,26 @@
+Cole Morgan ME333 HW 10
+
+28.4.1
+
+1. We will use the Raspberry Pie PICO2 to read our encoder. To communicate with the PIC, we can use UART2 to transfer serial data.
+After programming the PICO2, we can connect UART2TX from pin GP0 on PICO to B1 on the PIC. Then we can connect UART2RX
+from pin GP1 on the PICO to B0 on the PIC. 
+
+2. We will use the INA219 as our current sensor. We will connect this in series with the motor and H-brdige outputs to collect
+data on the current being emitted and communicate it using I2C. This connects to the PIC by connecting "SDA" on the INA219 to "SDA1" on the PIC
+which is pin 18. Then we connect SCL to SCL1 on the PIC which is pin 17. The rest of the peripheral is connected to 
+VCC and ground.
+
+3. For the direction bit I will use an IO pin on the PIC32 like RB10. I will make it an output using TRISB and emit its signal using LATB.
+For the PWM I will use OC1 for the output compare pin and I will set the PWM timer using the Timer 3 T3 peripheral.
+
+4. I will use Timer2 T2 for the current control ISR, and I will use Timer4 T4 to control the position ISR.
+I will give T4 the highest priority of 7 and T2 a lower priority like 5 because the motor controller comes before the 
+current controller in the block diagram -- without properly reading the position of the motor and 
+the desired motor control, the current controller has no work to do.
+
+5. Turned in as seperate PDF
+6. Turned in as seperate PDF
+
+28.4.9
+#8 Turned in as seperate PDF
